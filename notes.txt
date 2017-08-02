@@ -1,0 +1,2 @@
+1. This whole shape_input thing is when we are tyring to combine vectors of different shapes. Numpy has a specific format that it allows when combining vectors of different shapes, so we need to make sure we are in that format.
+2. 
