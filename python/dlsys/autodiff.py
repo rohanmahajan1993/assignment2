@@ -573,17 +573,18 @@ class Executor(object):
 
     def infer_shape(self, feed_shapes):
         """Given shapes of feed_dict nodes, infer shape for all nodes in graph.
-
         Implementation note:
         Iteratively calls node.op.infer_shape to infer shapes.
         Node shapes stored in self.node_to_shape_map.
-
         Parameters
         ----------
         feed_shapes: node->shapes mapping for feed_dict nodes.
         """
-        """TODO: Your code here"""
-
+	self.feed_shapes = feed_shapes
+	for node in self.topo_order:
+	   if node not in self.feed_shapes:
+		shape = node.op.infer_shape(node, [self.feed_shapes[input] for input in node.inputs])
+		self.feed_shapes[node] = shape 
     def memory_plan(self, feed_shapes):
         """Allocates ndarray.NDArray for every node except feed_dict nodes.
 
