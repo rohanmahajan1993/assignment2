@@ -151,8 +151,13 @@ class AddOp(Op):
         return [output_grad, output_grad]
 
     def infer_shape(self, node, input_shapes):
-        """Need to handle input_vals[0].shape != input_vals[1].shape"""
-        """TODO: Your code here"""
+        shape_1, shape_2 = input_shapes
+        if shape_1 == shape_2:
+	   return shape_1
+        elif shape_1 == (1,):
+	   return shape_2
+	else:
+	   return shape_1
 
 
 class AddByConstOp(Op):
@@ -175,8 +180,7 @@ class AddByConstOp(Op):
         return [output_grad]
 
     def infer_shape(self, node, input_shapes):
-        """TODO: Your code here"""
-
+	return input_shapes[0]
 
 class MulOp(Op):
     def __call__(self, node_A, node_B):
@@ -207,9 +211,14 @@ class MulOp(Op):
         return [node.inputs[1] * output_grad, node.inputs[0] * output_grad]
 
     def infer_shape(self, node, input_shapes):
-        """Need to handle input_vals[0].shape != input_vals[1].shape"""
-        """TODO: Your code here"""
-
+	shape_1, shape_2 = input_shapes
+        if shape_1 == shape_2:
+	   return shape_1
+        elif shape_1 == (1,):
+	   return shape_2
+	else:
+	   return shape_1
+	
 
 class MulByConstOp(Op):
     def __call__(self, node_A, const_val):
@@ -231,8 +240,7 @@ class MulByConstOp(Op):
         return [node.const_attr * output_grad]
 
     def infer_shape(self, node, input_shapes):
-        """TODO: Your code here"""
-
+	return input_shapes[0]
 
 class MatMulOp(Op):
     def __call__(self, node_A, node_B, trans_A=False, trans_B=False):
@@ -299,8 +307,17 @@ class MatMulOp(Op):
         return [lhs_grad, rhs_grad]
 
     def infer_shape(self, node, input_shapes):
-        """TODO: Your code here"""
-
+	shape_a, shape_b = input_shapes
+        if new_node.matmul_attr_trans_A:
+	  if new_node.matmul_attr_trans_B:
+	     return (shape_a[1], shape_b[0])
+	  else:
+	     return (shape_a[1], shape_b[1])
+	else:
+	  if new_node.matmul_attr_trans_B:
+	     return (shape_a[0], shape_b[0])
+          else:
+	     return (shape_a[0], shape_b[1])	
 
 class PlaceholderOp(Op):
     def __call__(self):
@@ -337,9 +354,7 @@ class ZerosLikeOp(Op):
         return [zeroslike_op(node.inputs[0])]
 
     def infer_shape(self, node, input_shapes):
-        """If input_shape is a vector, simpler to return (1,)"""
-        """TODO: Your code here"""
-
+	return input_shapes[0]
 
 class OnesLikeOp(Op):
     def __call__(self, node_A):
@@ -360,8 +375,7 @@ class OnesLikeOp(Op):
         return [zeroslike_op(node.inputs[0])]
 
     def infer_shape(self, node, input_shapes):
-        """If input_shape is a vector, simpler to return (1,)"""
-        """TODO: Your code here"""
+	return input_shapes[0]
 
 
 class ReduceSumAxisZeroOp(Op):
@@ -390,8 +404,9 @@ class ReduceSumAxisZeroOp(Op):
         e.g. (3,4,5)->(4,5)
         for vector, simpler to do (3,)->(1,)
         """
-        """TODO: Your code here"""
-
+        if len(input_shapes[0]) == 1:
+            return (1,)
+        return input_shapes[0][1:]	
 
 class BroadcastToOp(Op):
     def __call__(self, node_A, node_B):
@@ -416,7 +431,7 @@ class BroadcastToOp(Op):
         return [grad_A, grad_B]
 
     def infer_shape(self, node, input_shapes):
-        """TODO: Your code here"""
+	return broadcast_rule(input_shapes[0], input_shapes[1])
 
 
 def softmax_func(y):
@@ -452,8 +467,7 @@ class SoftmaxCrossEntropyOp(Op):
         return [grad_A, grad_B]
 
     def infer_shape(self, node, input_shapes):
-        """TODO: Your code here"""
-
+	return (1,)
 
 class SoftmaxOp(Op):
     def __call__(self, node_A):
@@ -475,8 +489,7 @@ class SoftmaxOp(Op):
         raise NotImplementedError
 
     def infer_shape(self, node, input_shapes):
-        """TODO: Your code here"""
-
+	return input_shapes[0]
 
 class ReluOp(Op):
     def __call__(self, node_A):
@@ -496,8 +509,7 @@ class ReluOp(Op):
         return [relu_gradient_op(node.inputs[0], output_grad)]
 
     def infer_shape(self, node, input_shapes):
-        """TODO: Your code here"""
-
+	return input_shapes[0]
 
 class ReluGradientOp(Op):
     def __call__(self, node_A, node_B):
@@ -519,7 +531,7 @@ class ReluGradientOp(Op):
         raise NotImplementedError
 
     def infer_shape(self, node, input_shapes):
-        """TODO: Your code here"""
+	return input_shapes[0]
 
 
 # Create global singletons of operators.
