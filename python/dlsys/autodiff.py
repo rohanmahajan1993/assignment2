@@ -570,6 +570,7 @@ class Executor(object):
         self.node_to_shape_map = None
         self.node_to_arr_map = None
         self.feed_shapes = None
+	self.memory_pool = None
 
     def infer_shape(self, feed_shapes):
         """Given shapes of feed_dict nodes, infer shape for all nodes in graph.
@@ -608,11 +609,7 @@ class Executor(object):
 	   for input in node.inputs:
 		node_depencies_map[input] +=1
 	
-	shape_map = dict()
-	# Freeing nodes from map to pool
-	for node in self.node_to_arr_map:
-	    shape_list = shape_map.get(node.shape, [])
-	    shape_map[node.shape] = shape_list.append(self.node_to_arr_map[node])
+	shape_map = self.memory_pool.copy()
 	#Freeing the node to array map		
 	self.node_to_arr_map = dict()
 	# Main logic
@@ -620,7 +617,9 @@ class Executor(object):
 	    if node not in self.feed_shapes:
 		arrays_available = shapes_map[node.shape]
 		if len(arrays_available) == 0:
-		   self.node_to_arr_map[node] = ndarray.emtpy(node.shape, ctx=self.ctx)
+		   new_array = ndarray.emtpy(node.shape, ctx=self.ctx)
+		   self.node_to_arr_map[node] = new_array
+		   self.memory_pool.get(node.shape, []).append(new_array)
 		else: 
 		   self.node_to_arr_map[node] = array_available.pop()
 		for input in node.inputs:
