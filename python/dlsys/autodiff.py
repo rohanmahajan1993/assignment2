@@ -602,8 +602,33 @@ class Executor(object):
         ----------
         feed_shapes: node->shapes mapping for feed_dict nodes.
         """
-        """TODO: Your code here"""
-
+	# Creating a dependency map
+	node_depencies_map = dict.fromkeys(self.topo_order, 0)
+	for node in self.topo_order:
+	   for input in node.inputs:
+		node_depencies_map[input] +=1
+	
+	shape_map = dict()
+	# Freeing nodes from map to pool
+	for node in self.node_to_arr_map:
+	    shape_list = shape_map.get(node.shape, [])
+	    shape_map[node.shape] = shape_list.append(self.node_to_arr_map[node])
+	#Freeing the node to array map		
+	self.node_to_arr_map = dict()
+	# Main logic
+	for node in self.topo_order:
+	    if node not in self.feed_shapes:
+		arrays_available = shapes_map[node.shape]
+		if len(arrays_available) == 0:
+		   self.node_to_arr_map[node] = ndarray.emtpy(node.shape, ctx=self.ctx)
+		else: 
+		   self.node_to_arr_map[node] = array_available.pop()
+		for input in node.inputs:
+		     node_depencies_map[input] -=1
+		     if node_depencies_map[input] == 0:
+			shape_list = shape_map.get(input.shape, [])
+	    		shape_list[input.shape] = shape_list.append(self.node_to_arr_map[node])
+	      	
     def run(self, feed_dict, convert_to_numpy_ret_vals=False):
         """
         Parameters

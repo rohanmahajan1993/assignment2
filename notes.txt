@@ -1,2 +1,4 @@
-1. This whole shape_input thing is when we are tyring to combine vectors of different shapes. Numpy has a specific format that it allows when combining vectors of different shapes, so we need to make sure we are in that format.
+1. This whole shape_input thing is that we want to reuse the memory from the gpu and not have to reallocate and free memory for the gpu.
+We need the memory to be of the same size, and therefore we need to know the size of memory that each node uses. We also need to keep track of the hiearchy, like if one node has dependencies, its dependencies do not share memory with that node. Concurrency makes this tricker because multiple computations are going on in parallel. 
+Therefore, computations that are going on in paralle, even if they have no logical dependency, can not share memory. 
 2. Also, I really like this id function in python. It allows you to see the memory location of items. 
